@@ -21,3 +21,12 @@ class ReportManager:
             if report_type == report.report_type:
                 list_of_reports.append(report)
         return list_of_reports
+
+    def delete_report(self, report_id):
+        self.reports.pop(report_id, None)
+
+    def update_report(self, report_id, updates):
+        report = self.get_report_by_id(report_id)
+        for field, value in updates.items():
+            setattr(report,field,value)
+        return report

@@ -1,4 +1,4 @@
-from pet_report import PetReport, ReportType
+from backend.app.pet_report import PetReport, ReportType
 
 class ReportManager:
 

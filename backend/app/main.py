@@ -1,42 +1,68 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from uuid import UUID
+from sqlalchemy.orm import Session
+from sqlalchemy import select
 
-from backend.app.pet_report import PetReport, ReportType
-from backend.app.report_manager import ReportManager
+
+from backend.app.enums import ReportType
 from backend.app.schemas import ReportCreate, ReportUpdate
+from backend.app.database import get_db 
+from backend.app.models import Report
 
 app = FastAPI()
-manager = ReportManager()
 
 #note: uvicorn backend.app.main:app --reload to run uvicorn
 
 
 @app.get("/reports")
-def get_reports(report_type: ReportType | None = None):
+def get_reports(
+    db: Session = Depends(get_db),
+    report_type: ReportType | None = None
+):
+    query = select(Report)
+
     if report_type is not None:
-        return manager.filter_by_report_type(report_type)
-    
-    return manager.get_all_reports()
+        query = query.where(Report.report_type == report_type.value)
+
+    result = db.execute(query)
+    return result.scalars().all()
 
 @app.post("/reports",  status_code=201)
-def create_report(report_data: ReportCreate):
-    new_report = PetReport(
-        report_data.report_type,
-        report_data.animal_type,
-        report_data.location,
-        report_data.description,
-        report_data.event_time,
-        report_data.name,
-        report_data.breed,
-        report_data.sex,
-        report_data.color
+def create_report(
+    report_data: ReportCreate,
+    db: Session = Depends(get_db)
+):
+    new_report = Report(
+        report_type=report_data.report_type.value,
+        animal_type=report_data.animal_type,
+        location=report_data.location,
+        description=report_data.description,
+        event_time=report_data.event_time,
+        name=report_data.name,
+        breed=report_data.breed,
+        sex=report_data.sex,
+        color=report_data.color
     )
-    manager.add_report(new_report)
+
+    db.add(new_report)
+    db.commit()
+    db.refresh(new_report)
+
     return new_report
 
 @app.get("/reports/{report_id}")
-def get_report_with_id(report_id : UUID):
-    report= manager.get_report_by_id(report_id)
+def get_report_with_id(
+    report_id : UUID, 
+    db: Session = Depends(get_db)
+    ):
+
+    query = select(Report)
+    query = query.where(Report.report_id == report_id)
+
+
+    result = (db.execute(query))
+    report = result.scalars().first()
+
     if report is None:
         raise HTTPException(
             status_code=404,
@@ -45,21 +71,37 @@ def get_report_with_id(report_id : UUID):
     return report
 
 @app.delete("/reports/{report_id}", status_code=204)
-def delete_report(report_id : UUID):
-    report = manager.get_report_by_id(report_id)
+def delete_report(
+    report_id : UUID,
+    db: Session = Depends(get_db)
+    ):
+    query = select(Report)
+    query = query.where(Report.report_id == report_id)
+    result = db.execute(query)
+    report = result.scalars().first()
     if report is None:
         raise HTTPException(
             status_code=404,
             detail="Report not found"
         )
 
-    manager.delete_report(report_id)
+    db.delete(report)
+    db.commit()
 
 
 @app.patch("/reports/{report_id}")
-def update_report(report_id : UUID, report_data: ReportUpdate):
+def update_report(
+    report_id : UUID,
+    report_data: ReportUpdate,
+    db: Session = Depends(get_db)
+    ):
 
-    report = manager.get_report_by_id(report_id)
+    query = select(Report)
+    query = query.where(Report.report_id == report_id)
+    
+    result = db.execute(query)
+    report = result.scalars().first()
+
     if report is None:
         raise HTTPException(
             status_code=404,
@@ -67,6 +109,15 @@ def update_report(report_id : UUID, report_data: ReportUpdate):
         )
     
     updates = report_data.model_dump(exclude_unset=True)
-    updated_report = manager.update_report(report_id, updates)
-    return updated_report
+
+    if "report_type" in updates:
+        updates["report_type"] = updates["report_type"].value
+
+    for field,value in updates.items(): #loops through the report_data dict
+        setattr(report,field,value) #updates values
+
+    db.commit()
+    db.refresh(report)
+    
+    return report
 

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from backend.app.pet_report import ReportType
+from backend.app.enums import ReportType
 from datetime import datetime
 
 class ReportCreate(BaseModel):

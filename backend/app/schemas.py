@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from backend.app.enums import ReportType
 from datetime import datetime
+from uuid import UUID
 
 class ReportCreate(BaseModel):
     report_type: ReportType
@@ -8,7 +9,6 @@ class ReportCreate(BaseModel):
     location: str               #later probably update to a better option for location or geolocation
     description: str
     event_time: datetime
-
     name: str | None = None
     breed: str | None = None
     sex: str | None = None
@@ -25,3 +25,17 @@ class ReportUpdate(BaseModel):
     breed: str | None = None
     sex: str | None = None
     color: str | None = None
+
+
+class ReportResponse(BaseModel):
+        report_id: UUID
+        report_type: ReportType
+        animal_type: str
+        location: str               #later probably update to a better option for location or geolocation
+        description: str
+        event_time: datetime
+        report_created_dt: datetime
+        name: str | None = None
+        breed: str | None = None
+        sex: str | None = None
+        color: str | None = None

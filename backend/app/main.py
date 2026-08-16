@@ -2,10 +2,11 @@ from fastapi import FastAPI, HTTPException, Depends
 from uuid import UUID
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-
+from uuid import UUID
+from datetime import datetime
 
 from backend.app.enums import ReportType
-from backend.app.schemas import ReportCreate, ReportUpdate
+from backend.app.schemas import ReportCreate, ReportUpdate, ReportResponse
 from backend.app.database import get_db 
 from backend.app.models import Report
 
@@ -14,7 +15,7 @@ app = FastAPI()
 #note: uvicorn backend.app.main:app --reload to run uvicorn
 
 
-@app.get("/reports")
+@app.get("/reports", response_model=list[ReportResponse])
 def get_reports(
     db: Session = Depends(get_db),
     report_type: ReportType | None = None
@@ -27,7 +28,7 @@ def get_reports(
     result = db.execute(query)
     return result.scalars().all()
 
-@app.post("/reports",  status_code=201)
+@app.post("/reports",  status_code=201, response_model=ReportResponse)
 def create_report(
     report_data: ReportCreate,
     db: Session = Depends(get_db)
@@ -50,9 +51,9 @@ def create_report(
 
     return new_report
 
-@app.get("/reports/{report_id}")
+@app.get("/reports/{report_id}", response_model=ReportResponse)
 def get_report_with_id(
-    report_id : UUID, 
+    report_id: UUID, 
     db: Session = Depends(get_db)
     ):
 
@@ -60,7 +61,7 @@ def get_report_with_id(
     query = query.where(Report.report_id == report_id)
 
 
-    result = (db.execute(query))
+    result = db.execute(query)
     report = result.scalars().first()
 
     if report is None:
@@ -72,7 +73,7 @@ def get_report_with_id(
 
 @app.delete("/reports/{report_id}", status_code=204)
 def delete_report(
-    report_id : UUID,
+    report_id: UUID,
     db: Session = Depends(get_db)
     ):
     query = select(Report)
@@ -89,9 +90,9 @@ def delete_report(
     db.commit()
 
 
-@app.patch("/reports/{report_id}")
+@app.patch("/reports/{report_id}", response_model=ReportResponse)
 def update_report(
-    report_id : UUID,
+    report_id: UUID,
     report_data: ReportUpdate,
     db: Session = Depends(get_db)
     ):

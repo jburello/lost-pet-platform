@@ -1,5 +1,5 @@
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy import Text, DateTime, func
+from sqlalchemy import Text, DateTime, func, Float
 from datetime import datetime
 from uuid import UUID, uuid4
 
@@ -18,6 +18,8 @@ class Report(Base):
     animal_type: Mapped[str] = mapped_column(Text)
     report_type: Mapped[str] = mapped_column(Text)
     location: Mapped[str] = mapped_column(Text)
+    latitude: Mapped[float] = mapped_column(Float)
+    longitude: Mapped[float] = mapped_column(Float)
     description: Mapped[str] = mapped_column(Text)
     event_time: Mapped[datetime] = mapped_column(DateTime)
     report_created_dt: Mapped[datetime] = mapped_column(

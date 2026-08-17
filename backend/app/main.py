@@ -37,6 +37,8 @@ def create_report(
         report_type=report_data.report_type.value,
         animal_type=report_data.animal_type,
         location=report_data.location,
+        latitude=report_data.latitude,
+        longitude=report_data.longitude,
         description=report_data.description,
         event_time=report_data.event_time,
         name=report_data.name,

@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from backend.app.enums import ReportType
 from datetime import datetime
 from uuid import UUID
+from pydantic import ConfigDict
 
 class ReportCreate(BaseModel):
     report_type: ReportType
@@ -45,3 +46,7 @@ class ReportResponse(BaseModel):
         breed: str | None = None
         sex: str | None = None
         color: str | None = None
+        model_config = ConfigDict(from_attributes=True) # Lets pydantic read data from SQLAlchemy object attributes (report.name, report.location, etc.)
+
+class NearbyReportResponse(ReportResponse):
+     distance_miles: float

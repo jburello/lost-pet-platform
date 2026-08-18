@@ -2,6 +2,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import Text, DateTime, func, Float
 from datetime import datetime
 from uuid import UUID, uuid4
+from geoalchemy2 import Geography
 
 from backend.app.enums import ReportType
 
@@ -20,6 +21,13 @@ class Report(Base):
     location: Mapped[str] = mapped_column(Text)
     latitude: Mapped[float] = mapped_column(Float)
     longitude: Mapped[float] = mapped_column(Float)
+    location_point = mapped_column(
+        Geography(
+            geometry_type="POINT",
+            srid=4326
+        ),
+        nullable=False
+    )
     description: Mapped[str] = mapped_column(Text)
     event_time: Mapped[datetime] = mapped_column(DateTime)
     report_created_dt: Mapped[datetime] = mapped_column(

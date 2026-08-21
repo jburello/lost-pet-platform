@@ -4,7 +4,6 @@ from datetime import datetime
 from uuid import UUID, uuid4
 from geoalchemy2 import Geography
 
-from backend.app.enums import ReportType, PetSex
 
 class Base(DeclarativeBase):
     pass
@@ -42,7 +41,6 @@ class Report(Base):
     report_id: Mapped[UUID] = mapped_column(
         primary_key=True,
         default=uuid4
-
                                             )
     animal_type: Mapped[str] = mapped_column(Text)
     report_type: Mapped[str] = mapped_column(Text)

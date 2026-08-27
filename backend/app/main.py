@@ -8,11 +8,12 @@ from backend.app.enums import ReportType
 from backend.app.schemas import ReportCreate, ReportUpdate, ReportResponse, NearbyReportResponse
 from backend.app.database import get_db 
 from backend.app.models import Report
-from backend.app.routers import reports, users, pets
+from backend.app.routers import reports, users, pets, petcases
 
 app = FastAPI()
 
 app.include_router(reports.router)
 app.include_router(users.router)
 app.include_router(pets.router)
-#note: uvicorn backend.app.main:app --reload to run uvicorn
+app.include_router(petcases.router)
+#note: uvicorn backend.app.main:app --reload

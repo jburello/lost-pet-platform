@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from backend.app.enums import ReportType, PetSex
+from backend.app.enums import ReportType, PetSex, CaseStatus, LocationVisibility
 from datetime import datetime
 from uuid import UUID
 from pydantic import ConfigDict
@@ -21,6 +21,11 @@ class UserUpdate(BaseModel):
 class UserResponse(BaseModel):
     user_id: UUID
     display_name: str
+
+
+
+
+
 
 #Pet Schemas
 class PetCreate(BaseModel):
@@ -52,18 +57,65 @@ class PetResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+
+
+
+
+
+#PetCase Schemas
+class PetCaseCreate(BaseModel):
+    last_seen_location_private: str
+    latitude: float = Field(ge=-90,le=90)    
+    longitude: float = Field(ge=-180,le=180)
+    public_area: str
+    lost_at: datetime
+    description: str
+
+class PetCaseResponse(BaseModel):
+    case_id: UUID
+    pet_id: UUID
+    status: CaseStatus
+    last_seen_location_private: str
+    public_area: str #temporary till geocoding implementation
+    latitude: float = Field(ge=-90,le=90)    
+    longitude: float = Field(ge=-180,le=180)
+    lost_at: datetime
+    description: str
+    created_at: datetime
+    resolved_at: datetime | None = None
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PetCasePublicResponse(BaseModel):
+    case_id: UUID
+    pet_id: UUID
+    status: CaseStatus
+    public_area: str
+    lost_at: datetime
+    description: str
+    created_at: datetime
+    resolved_at: datetime | None = None
+    model_config = ConfigDict(from_attributes=True)
+
+
+
+
+
+
+
 #Report Schemas
 class ReportCreate(BaseModel):
     report_type: ReportType
     animal_type: str
     location: str
+    location_visibility: LocationVisibility
     longitude: float = Field(ge=-180,le=180)
     latitude: float = Field(ge=-90,le=90)    
     description: str
     event_time: datetime
     name: str | None = None
     breed: str | None = None
-    sex: str | None = None
+    sex: PetSex | None = None
     color: str | None = None
 
 
@@ -71,21 +123,24 @@ class ReportUpdate(BaseModel):
     report_type: ReportType | None = None
     animal_type: str | None = None
     location: str | None = None
+    location_visibility: LocationVisibility | None = None
     longitude: float | None = Field(default = None, ge=-180,le=180)
     latitude: float | None = Field(default = None, ge=-90,le=90)          
     description: str | None = None
     event_time: datetime | None = None
     name: str | None = None
     breed: str | None = None
-    sex: str | None = None
+    sex: PetSex | None = None
     color: str | None = None
 
 
 class ReportResponse(BaseModel):
         report_id: UUID
+        reporter_user_id: UUID
         report_type: ReportType
         animal_type: str
         location: str
+        location_visibility: LocationVisibility
         longitude: float = Field(ge=-180,le=180)
         latitude: float = Field(ge=-90,le=90)         
         description: str
@@ -93,9 +148,26 @@ class ReportResponse(BaseModel):
         report_created_dt: datetime
         name: str | None = None
         breed: str | None = None
-        sex: str | None = None
+        sex: PetSex | None = None
         color: str | None = None
         model_config = ConfigDict(from_attributes=True) # Lets pydantic read data from SQLAlchemy object attributes (report.name, report.location, etc.)
 
-class NearbyReportResponse(ReportResponse):
+class ReportPublicResponse(BaseModel):
+        report_id: UUID
+        report_type: ReportType
+        animal_type: str
+        location: str
+        longitude: float = Field(ge=-180,le=180)
+        latitude: float = Field(ge=-90,le=90)       
+        description: str
+        event_time: datetime
+        report_created_dt: datetime
+        name: str | None = None
+        breed: str | None = None
+        sex: PetSex | None = None
+        color: str | None = None
+        
+
+
+class NearbyReportResponse(ReportPublicResponse):
      distance_miles: float
